@@ -1,6 +1,6 @@
 ### vue-router工作原理
 
-`VueRouter`是工作中一个常用组件，用于渲染匹配到的路由组件。在复杂项目中，有时路由结构会变得相当复杂，了解`vue-router`可以让我们在开发时更加得心应手。
+`vue-router`是工作中一个常用框架，用于渲染匹配到的路由组件。在复杂项目中，有时路由结构会变得相当复杂，了解`vue-router`源码可以让我们在开发时更加得心应手。
 
 ### 如果要自己实现一个路由框架
 
@@ -150,9 +150,33 @@ export default {
 ```typescript
 const record: RouteRecord = {
     // ...
+
+    /**
+     * 从这里可以看出在开发中，下面这种写法中的HomeIndex是永远无法被渲染的
+     * {
+     *     path: '/home',
+     *     component: HomeIndex
+     *     components: { a: HomeA, b: HomeB },
+     * }
+     */
     components: route.components || { default: route.component },
     // ...
 }
+```
+
+值得一提的是，所谓的`子路由`，是由`RouteConfig`的`children`字段中的内容生成的。例如下面的代码最终将生成三条`RouteRecord`。
+
+```typescript
+const routes = [
+    {
+        path: '/home',
+        component: Home,
+        children: [
+            { path: '/home/index', component: HomeIndex },
+            { path: '/home/detail', component: HomeDetail },
+        ],
+    },
+];
 ```
 
 现在`<router-view>`可能看起来像这样
@@ -165,6 +189,7 @@ export default {
     },
     render(h) {
         // 此处省略了其他代码
+        // 使用`name`来决定将要渲染的组件
         return h(record.components[this.name], ...args);
     },
 };
@@ -209,6 +234,6 @@ function formatMatch(record?: RouteRecord): Array<RouteRecord> {
 }
 ```
 
-其实从上面的代码可以看出，`matched`是所匹配到的`RouteRecord`及其所有祖先`RouteRecord`。
+其实从上面的代码可以看出，由于每个`RouteRecord`都知道自己的`parent`，所以`matched`中的值，是匹配到的`RouteRecord`及其所有祖先`RouteRecord`共同组成的数组。
 
 至此我们大致上了解到`vue-router`中会使用的一些数据格式，对`vue-router`的逻辑也有了初步的印象。（当然`vue-router`中还有许多细节，后续继续补充。
