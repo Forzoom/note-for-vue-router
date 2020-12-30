@@ -51,7 +51,7 @@ export default {
 
 ##### 定义`RouteConfig`
 
-先来看一段示例，下面是一段简单的`VueRouter`构造过程，在其中我们向`routes`字段传递的就是`RouteConfig`列表。
+先来看一段示例，下面是一段简单的`VueRouter`构造过程，在其中我们向`routes`字段传递的就是`RouteConfig`数组。
 
 ```typescript
 const routes: RouteConfig[] = [
@@ -120,7 +120,7 @@ const record = nameMap[location.name];
 
 ##### 渲染组件
 
-当获取到正确的`RouteConfig`之后，直接取出其中的`components`字段中包含的组件，在`render`函数中渲染就完成了。
+当获取到正确的`RouteConfig`之后，直接取出其中的`component`字段中包含的组件，在`render`函数中渲染就完成了。
 
 ```typescript
 export default {
@@ -235,5 +235,47 @@ function formatMatch(record?: RouteRecord): Array<RouteRecord> {
 ```
 
 其实从上面的代码可以看出，由于每个`RouteRecord`都知道自己的`parent`，所以`matched`中的值，是匹配到的`RouteRecord`及其所有祖先`RouteRecord`共同组成的数组。
+
+例如
+
+```typescript
+const router = new VueRouter({
+    routes: [
+        {
+            path: '/home',
+            component: Home,
+            children: [
+                {
+                    path: 'index',
+                    component: HomeIndex,
+                    chlidren: [
+                        path: 'foo',
+                        component: HomeIndexFoo,
+                    ],
+                },
+            ],
+        },
+    ],
+});
+```
+
+当页面路由为`/home/index/foo`时，`matched`字段数据将类似于
+
+```typescript
+// 省略了其他字段
+const route: Route = {
+    matched: [
+        {
+            component: Home,
+        },
+        {
+            component: HomeIndex,
+        },
+        {
+            component: HomeIndexFoo,
+        },
+    ],
+};
+```
 
 至此我们大致上了解到`vue-router`中会使用的一些数据格式，对`vue-router`的逻辑也有了初步的印象。（当然`vue-router`中还有许多细节，后续继续补充。
